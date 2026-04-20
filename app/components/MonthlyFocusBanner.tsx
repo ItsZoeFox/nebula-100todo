@@ -24,9 +24,9 @@ export default function MonthlyFocusBanner() {
     return (
       <>
         <button onClick={() => setShowModal(true)}
-          className="w-full px-4 py-2 text-[10px] text-left transition-opacity hover:opacity-80"
-          style={{ background: "#06060f", borderBottom: "1px solid #1a1a2a", color: "#2a2a5a", fontFamily: "'Press Start 2P', monospace" }}>
-          ★ 设置本月主题月 →
+          className="w-full px-4 py-2 text-[11px] text-left transition-opacity hover:opacity-80"
+          style={{ background: "#08082a", borderBottom: "1px solid #2a2a5a", color: "#7a7ac8", fontFamily: "'Press Start 2P', monospace" }}>
+          ★ 点击设置本月主题月 →
         </button>
         {showModal && <MonthlyFocusModal onClose={() => setShowModal(false)} />}
       </>

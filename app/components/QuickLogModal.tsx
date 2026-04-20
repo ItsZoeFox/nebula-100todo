@@ -24,7 +24,7 @@ async function compressBlob(blob: Blob): Promise<string> {
   return compressImage(new File([blob], "paste.png", { type: blob.type }));
 }
 
-export default function QuickLogModal({ onClose }: { onClose: () => void }) {
+export default function QuickLogModal({ onClose, defaultTodoId }: { onClose: () => void; defaultTodoId?: number }) {
   const todos = useTodoStore((s) => s.todos);
   const categories = useTodoStore((s) => s.categories);
   const getCatColor = useTodoStore((s) => s.getCatColor);
@@ -32,7 +32,7 @@ export default function QuickLogModal({ onClose }: { onClose: () => void }) {
 
   const [text, setText] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [todoId, setTodoId] = useState<number | "">("");
+  const [todoId, setTodoId] = useState<number | "">(defaultTodoId ?? "");
   const [catFilter, setCatFilter] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);

@@ -10,6 +10,7 @@ import LogsView from "@/app/components/LogsView";
 import QuickLogModal from "@/app/components/QuickLogModal";
 import GoalFormModal from "@/app/components/GoalFormModal";
 import MonthlyFocusBanner from "@/app/components/MonthlyFocusBanner";
+import DailyGoalModal from "@/app/components/DailyGoalModal";
 
 export default function Home() {
   const initStore = useTodoStore((s) => s.initStore);
@@ -18,9 +19,25 @@ export default function Home() {
   const setSelected = useTodoStore((s) => s.setSelected);
 
   const [showQuickLog, setShowQuickLog] = useState(false);
+  const [quickLogTodoId, setQuickLogTodoId] = useState<number | undefined>(undefined);
   const [showAddGoal, setShowAddGoal] = useState(false);
+  const [showDailyModal, setShowDailyModal] = useState(false);
 
-  useEffect(() => { initStore(); }, [initStore]);
+  useEffect(() => {
+    initStore();
+    // Show daily modal after store hydrates
+    const t = setTimeout(() => setShowDailyModal(true), 300);
+    return () => clearTimeout(t);
+  }, [initStore]);
+
+  // Refresh daily goal when tab becomes visible again (handles overnight stays)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") initStore();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [initStore]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
@@ -30,13 +47,18 @@ export default function Home() {
 
   const panelOpen = selectedId !== null;
 
+  function openQuickLog(todoId?: number) {
+    setQuickLogTodoId(todoId);
+    setShowQuickLog(true);
+  }
+
   return (
     <main
       className="flex flex-col w-screen h-screen overflow-hidden"
       style={{ background: "#03030f" }}
     >
       {/* Desktop top nav */}
-      <Nav onQuickLog={() => setShowQuickLog(true)} />
+      <Nav onQuickLog={() => openQuickLog()} />
 
       {/* Monthly focus banner */}
       <MonthlyFocusBanner />
@@ -75,7 +97,18 @@ export default function Home() {
       <div className="md:hidden h-[60px] shrink-0" />
 
       {/* Modals */}
-      {showQuickLog && <QuickLogModal onClose={() => setShowQuickLog(false)} />}
+      {showDailyModal && (
+        <DailyGoalModal
+          onClose={() => setShowDailyModal(false)}
+          onQuickLog={(id) => openQuickLog(id)}
+        />
+      )}
+      {showQuickLog && (
+        <QuickLogModal
+          defaultTodoId={quickLogTodoId}
+          onClose={() => { setShowQuickLog(false); setQuickLogTodoId(undefined); }}
+        />
+      )}
       {showAddGoal && <GoalFormModal mode="add" onClose={() => setShowAddGoal(false)} />}
     </main>
   );
