@@ -14,6 +14,8 @@ import DailyGoalModal from "@/app/components/DailyGoalModal";
 
 export default function Home() {
   const initStore = useTodoStore((s) => s.initStore);
+  const syncFromCloud = useTodoStore((s) => s.syncFromCloud);
+  const syncToCloud = useTodoStore((s) => s.syncToCloud);
   const activeTab = useTodoStore((s) => s.activeTab);
   const selectedId = useTodoStore((s) => s.selectedId);
   const setSelected = useTodoStore((s) => s.setSelected);
@@ -24,20 +26,44 @@ export default function Home() {
   const [showDailyModal, setShowDailyModal] = useState(false);
 
   useEffect(() => {
+    // 1. Init from localStorage first (instant)
     initStore();
-    // Show daily modal after store hydrates
-    const t = setTimeout(() => setShowDailyModal(true), 300);
-    return () => clearTimeout(t);
-  }, [initStore]);
+    // 2. Then pull cloud state (source of truth across devices)
+    syncFromCloud().then(() => {
+      // Show daily modal only once per calendar day
+      const todayStr = new Date().toDateString();
+      const lastShown = localStorage.getItem("nebula_daily_shown");
+      if (lastShown !== todayStr) {
+        setTimeout(() => {
+          setShowDailyModal(true);
+          localStorage.setItem("nebula_daily_shown", todayStr);
+        }, 400);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Refresh daily goal when tab becomes visible again (handles overnight stays)
+  // Auto-save to cloud on any state change (debounced 1.5s)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const unsub = useTodoStore.subscribe(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => syncToCloud(), 1500);
+    });
+    return () => { unsub(); clearTimeout(timer); };
+  }, [syncToCloud]);
+
+  // Refresh from cloud when tab becomes visible again (handles multi-device edits)
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") initStore();
+      if (document.visibilityState === "visible") {
+        initStore();
+        syncFromCloud();
+      }
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [initStore]);
+  }, [initStore, syncFromCloud]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };

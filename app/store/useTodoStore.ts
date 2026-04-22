@@ -63,6 +63,10 @@ interface Store {
   // Monthly focus
   setMonthlyFocus: (focus: MonthlyFocus | null) => void;
 
+  // Cloud sync
+  syncFromCloud: () => Promise<void>;
+  syncToCloud: () => Promise<void>;
+
   // Helper selector
   getCatColor: (cat: string) => string;
 }
@@ -288,6 +292,35 @@ export const useTodoStore = create<Store>()(
       },
 
       setMonthlyFocus: (focus) => set({ monthlyFocus: focus }),
+
+      syncFromCloud: async () => {
+        try {
+          const res = await fetch("/api/state");
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!data) return;
+          // Cloud is the source of truth — overwrite local state
+          set({
+            todos: data.todos ?? get().todos,
+            logs: data.logs ?? get().logs,
+            categories: data.categories ?? get().categories,
+            monthlyFocus: data.monthlyFocus ?? null,
+            dailyId: data.dailyId ?? get().dailyId,
+            dailyDate: data.dailyDate ?? get().dailyDate,
+          });
+        } catch { /* offline — keep local state */ }
+      },
+
+      syncToCloud: async () => {
+        const { todos, logs, categories, monthlyFocus, dailyId, dailyDate } = get();
+        try {
+          await fetch("/api/state", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ todos, logs, categories, monthlyFocus, dailyId, dailyDate }),
+          });
+        } catch { /* offline — will retry on next change */ }
+      },
 
       getCatColor: (cat) => {
         const found = get().categories.find((c) => c.name === cat);
