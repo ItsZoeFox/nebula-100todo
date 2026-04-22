@@ -1,0 +1,13 @@
+{
+  "name": "NEBULA // 100TODO",
+  "short_name": "NEBULA",
+  "description": "星云百目标追踪器",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#03030f",
+  "theme_color": "#03030f",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

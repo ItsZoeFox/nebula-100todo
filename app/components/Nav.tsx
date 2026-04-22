@@ -1,6 +1,7 @@
 "use client";
 import { useTodoStore } from "@/app/store/useTodoStore";
 import type { TabId } from "@/app/data/todos";
+import NotificationSetup from "./NotificationSetup";
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: "galaxy", label: "星云", icon: "◈" },
@@ -48,18 +49,21 @@ export default function Nav({ onQuickLog }: NavProps) {
           ))}
         </div>
 
-        <button
-          onClick={onQuickLog}
-          className="px-4 py-2 text-[12px] transition-opacity hover:opacity-80"
-          style={{
-            background: "#2a1a5a",
-            border: "1px solid #6a3aaa",
-            color: "#c084fc",
-            fontFamily: "'Press Start 2P', monospace",
-          }}
-        >
-          + 记录
-        </button>
+        <div className="flex items-center gap-3">
+          <NotificationSetup />
+          <button
+            onClick={onQuickLog}
+            className="px-4 py-2 text-[12px] transition-opacity hover:opacity-80"
+            style={{
+              background: "#2a1a5a",
+              border: "1px solid #6a3aaa",
+              color: "#c084fc",
+              fontFamily: "'Press Start 2P', monospace",
+            }}
+          >
+            + 记录
+          </button>
+        </div>
       </nav>
 
       {/* ── Mobile: bottom bar ───────────────────────── */}
