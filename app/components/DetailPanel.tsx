@@ -99,6 +99,7 @@ export default function DetailPanel() {
   const setProgress = useTodoStore((s) => s.setProgress);
   const deleteTodo = useTodoStore((s) => s.deleteTodo);
   const deleteLog = useTodoStore((s) => s.deleteLog);
+  const addLog = useTodoStore((s) => s.addLog);
   const getCatColor = useTodoStore((s) => s.getCatColor);
 
   const [sortDesc, setSortDesc] = useState(true);
@@ -106,6 +107,8 @@ export default function DetailPanel() {
   const [showDelete, setShowDelete] = useState(false);
   const [expandedImg, setExpandedImg] = useState<string | null>(null);
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [showInlineLog, setShowInlineLog] = useState(false);
+  const [inlineText, setInlineText] = useState("");
 
   const todo: TodoRecord | undefined = todos.find((t) => t.id === selectedId);
   if (!todo) return null;
@@ -119,6 +122,13 @@ export default function DetailPanel() {
   function handleDelete() {
     deleteTodo(todo!.id);
     setShowDelete(false);
+  }
+
+  function handleInlineLogSave() {
+    if (!inlineText.trim()) return;
+    addLog(inlineText.trim(), [], todo!.id);
+    setInlineText("");
+    setShowInlineLog(false);
   }
 
   return (
@@ -178,18 +188,57 @@ export default function DetailPanel() {
         <div className="px-5 mt-5 mb-8 flex-1">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[12px]" style={{ color: "#4a4a8a" }}>记录 ({todoLogs.length})</span>
-            <button onClick={() => setSortDesc((v) => !v)} className="text-[11px] transition-opacity hover:opacity-80" style={{ color: "#3a3a7a" }}>
-              {sortDesc ? "新→旧 ↓" : "旧→新 ↑"}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { setShowInlineLog((v) => !v); setInlineText(""); }}
+                className="text-[11px] px-2 py-0.5 transition-opacity hover:opacity-80"
+                style={{ border: `1px solid ${color}55`, color: `${color}cc` }}
+              >+ 添加</button>
+              <button onClick={() => setSortDesc((v) => !v)} className="text-[11px] transition-opacity hover:opacity-80" style={{ color: "#3a3a7a" }}>
+                {sortDesc ? "新→旧 ↓" : "旧→新 ↑"}
+              </button>
+            </div>
           </div>
-          {!sortedLogs.length && (
-            <div className="text-[11px] mt-4 text-center" style={{ color: "#2a2a5a" }}>还没有记录，点「+ 记录」添加</div>
+
+          {/* Inline add log form */}
+          {showInlineLog && (
+            <div className="mb-4 p-3" style={{ border: `1px solid ${color}33`, background: "#08082a" }}>
+              <textarea
+                autoFocus
+                value={inlineText}
+                onChange={(e) => setInlineText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleInlineLogSave(); }}
+                placeholder="写下进展、卡点或任何想法..."
+                rows={3}
+                className="w-full p-2 text-[12px] resize-none outline-none leading-relaxed mb-2"
+                style={{ background: "#0a0a2a", border: "1px solid #2a2a6a", color: "#c8c8ff", fontFamily: "'Press Start 2P', monospace" }}
+              />
+              <div className="flex gap-2">
+                <button onClick={handleInlineLogSave} disabled={!inlineText.trim()}
+                  className="text-[11px] px-3 py-1 transition-opacity hover:opacity-80 disabled:opacity-30"
+                  style={{ background: `${color}22`, border: `1px solid ${color}66`, color, fontFamily: "'Press Start 2P', monospace" }}>
+                  保存
+                </button>
+                <button onClick={() => { setShowInlineLog(false); setInlineText(""); }}
+                  className="text-[11px] px-3 py-1 transition-opacity hover:opacity-80"
+                  style={{ border: "1px solid #2a2a6a", color: "#4a4a8a" }}>
+                  取消
+                </button>
+                <span className="text-[9px] self-center ml-1" style={{ color: "#2a2a5a" }}>⌘↵ 保存</span>
+              </div>
+            </div>
+          )}
+
+          {!sortedLogs.length && !showInlineLog && (
+            <div className="text-[11px] mt-4 text-center" style={{ color: "#2a2a5a" }}>还没有记录，点「+ 添加」</div>
           )}
           <div className="flex flex-col gap-3">
             {sortedLogs.map((log) => (
               <div key={log.id} className="pl-3 group" style={{ borderLeft: `2px solid ${color}44` }}>
                 <div className="flex items-center justify-between mb-1">
-                  <div className="text-[11px]" style={{ color: "#3a3a6a" }}>{log.date}</div>
+                  <div className="text-[11px]" style={{ color: "#3a3a6a" }}>
+                    {log.ts > 0 ? log.date : <span style={{ color: "#2a2a5a" }}>{log.date}</span>}
+                  </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => setEditingLogId(log.id === editingLogId ? null : log.id)}
                       className="text-[10px]" style={{ color: "#6a6aaa" }}>✎</button>
