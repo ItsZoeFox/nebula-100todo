@@ -176,7 +176,10 @@ export const useTodoStore = create<Store>()(
       setSelected: (id) => set({ selectedId: id }),
       swapDaily: () => {
         const { todos, dailyId } = get();
-        set({ dailyId: pickDailyId(todos, dailyId), dailyDate: today() });
+        const pool = todos.filter((t) => t.status !== "done" && t.id !== dailyId);
+        if (!pool.length) return;
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        set({ dailyId: next.id, dailyDate: today() });
       },
 
       addTodo: (title, cat, progress) => {
