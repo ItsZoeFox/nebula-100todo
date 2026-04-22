@@ -1,5 +1,5 @@
-import { Redis } from "@upstash/redis";
-const kv = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL!, token: process.env.UPSTASH_REDIS_REST_TOKEN! });
+import Redis from "ioredis";
+const kv = new Redis(process.env.REDIS_URL!);
 import webpush from "web-push";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -25,10 +25,10 @@ const EVENING_MSGS = [
 
 async function sendPush(title: string, body: string) {
   initVapid();
-  const raw = await kv.get<string>("push_sub");
+  const raw = await kv.get("push_sub");
   if (!raw) return { ok: false, reason: "no subscription" };
 
-  const sub = typeof raw === "string" ? JSON.parse(raw) : raw;
+  const sub = JSON.parse(raw);
   await webpush.sendNotification(sub, JSON.stringify({ title, body, url: "/" }));
   return { ok: true };
 }
