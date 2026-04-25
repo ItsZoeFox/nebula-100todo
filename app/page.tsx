@@ -11,6 +11,7 @@ import QuickLogModal from "@/app/components/QuickLogModal";
 import GoalFormModal from "@/app/components/GoalFormModal";
 import MonthlyFocusBanner from "@/app/components/MonthlyFocusBanner";
 import DailyGoalModal from "@/app/components/DailyGoalModal";
+import NotificationSetup from "@/app/components/NotificationSetup";
 
 export default function Home() {
   const initStore = useTodoStore((s) => s.initStore);
@@ -85,6 +86,15 @@ export default function Home() {
     >
       {/* Desktop top nav */}
       <Nav onQuickLog={() => openQuickLog()} />
+
+      {/* Mobile-only top strip with notification button */}
+      <div
+        className="md:hidden flex items-center justify-between px-4 py-2 shrink-0"
+        style={{ background: "rgba(4,4,26,0.97)", borderBottom: "1px solid #1a1a4a", fontFamily: "'Press Start 2P', monospace" }}
+      >
+        <span className="text-[11px]" style={{ color: "#3a3a7a" }}>◈ NEBULA</span>
+        <NotificationSetup />
+      </div>
 
       {/* Monthly focus banner */}
       <MonthlyFocusBanner />
